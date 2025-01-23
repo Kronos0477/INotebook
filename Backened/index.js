@@ -1,6 +1,6 @@
 const express = require('express')
 const connecttomongo  = require('./db')
-
+const cors = require('cors')
 // Connection with mongodb:
 
 try {
@@ -14,6 +14,7 @@ const app = express();
 
 
 // Middleware:
+app.use(cors())
 app.use(express.json())
 
 // Express app:
@@ -22,5 +23,5 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/notes', require('./routes/notes'));
 
 app.listen(Port, () => {
-    console.log('Server is running on port:', Port);
+    console.log('INoteBook Backened is running on Port Number : ', Port);
 })

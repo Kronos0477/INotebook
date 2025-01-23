@@ -8,10 +8,12 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "both":"concurrently \"npm run dev\" \"nodemon Backened/index.js\""
+    "both": "concurrently \"npm run dev\" \"nodemon Backened/index.js\""
   },
   "dependencies": {
     "concurrently": "^9.1.2",
+    "mongodb": "^6.12.0",
+    "mongoose": "^8.9.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.1.1"

@@ -15,13 +15,15 @@ const fetchuser = require('../Middlewares/fetchuser')
 router.post('/createuser',[
     body('Email','Enter a Valid Email').isEmail(),
     body('Username','Enter a valid Username').isLength({min:3}),
-    body('Password','Enter a Valid Passoword').isLength({min:5}),
 ],async (req,res)=>{
   // if there are errors return the bad request ;
-
+  let success = false;
+  let {Username,Email,Password} = req.body;
+  console.log(Password)
   const error=validationResult(req);
+  console.log('here')
   if(!error.isEmpty()){
-    return res.status(400).json({errors:error.array()});
+    return res.status(400).json({error:error.array(),success:success});
   }
 
   // Check whether the user with the same email exist:
@@ -30,31 +32,35 @@ router.post('/createuser',[
  
   let user = await   User.findOne({Email:req.body.Email})
   if(!user){
-  const salt = await  bcrypt.genSalt(16);
-  secpass = await bcrypt.hash(req.body.Password , salt)
-
-   
-// create a new user :
-    user = await User.create({
-      Username : req.body.Username,
-      Email: req.body.Email,
-      Password : secpass,
-    })
+    console.log('done');
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hash = await bcrypt.hash(Password, salt);
+    Password = hash;
+    // Create user in the database
   }else{
-   return res.status(400).json({"errormessage" : 'The email already exist'})
+    return res.status(400).json({"error" : 'The email already exist',success:success})
   }
+  console.log(Password)
+  const User_mongo = await User.create({
+    Username,
+    Email,
+    Password,
+  });
+  console.log(User_mongo._id);
 
   const data ={
-    id:user.id
+    id:User_mongo._id
 
   }
   const authtoken = jwt.sign(data,JWT_SECRET);
 
-  res.json(authtoken)
-  // console.log(jwtdata)
-  // res.json({user}) 
+  success = true;
+  return res.json({authtoken:authtoken,success:success})
+ 
 } catch (error) {
-  res.status(500).send('Internal server error ')
+  console.log(error)
+  return  res.status(500).json({error:'Internal server error ',success:success})
 }  
 })
 
@@ -67,34 +73,42 @@ router.post('/login',[
   
 ],async (req,res)=>{
 
-
+let success = false;
+console.log(req.body)
   const error=validationResult(req);
   if(!error.isEmpty()){
-    return res.status(400).json({errors:error.array()});
+    return res.status(400).json({error:error.array(),success:success});
   }
   const {Email,Password} = req.body;
   try {
+  
     let user =await  User.findOne({Email})
+  
     if(!user){
-      return res.status(400).json({error:"Please enter correct credentials"});
-
+      // console.log('here')
+      return res.json({error:"Please enter correct credentials",success:success});
+      
     }
-
+    
+ 
     const passwordcompare = await bcrypt.compare(Password,user.Password)
+    console.log(passwordcompare)
     if(!passwordcompare){
-      return res.status(400).json({error:"Please enter correct credentials"});
+      
+      return res.json({error:"Please enter correct credentials",success:success});
     }
    
   const data ={
     id:user._id
 
   }
-  const authtoken = jwt.sign(data,JWT_SECRET);
 
-  res.json({authtoken})
+  const authtoken = jwt.sign(data,JWT_SECRET);
+success = true;
+ return res.json({authtoken:authtoken,success:success})
   } catch (error) {
     console.log(error)
-    res.status(500).send('Internal server error ')
+   return  res.status(500).json({error:'Internal server error ',success:success})
   }
   
 
